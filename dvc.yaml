@@ -1,0 +1,65 @@
+stages:
+
+  data_ingestion:
+    cmd: python -m src.data_ingestion
+    deps:
+      - data/source/BankNote_Authentication.csv
+      - src/data_ingestion.py
+      - src/utils.py
+    params:
+      - data
+    outs:
+      - data/raw/banknote.csv
+    metrics:
+      - reports/data_report.json:
+          cache: false
+
+  data_preprocessing:
+    cmd: python -m src.data_preprocessing
+    deps:
+      - data/raw/banknote.csv
+      - src/data_preprocessing.py
+      - src/utils.py
+    params:
+      - data
+      - preprocessing
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv
+
+  model_training:
+    cmd: python -m src.model_training
+    deps:
+      - data/processed/train.csv
+      - src/model_training.py
+      - src/utils.py
+    params:
+      - data
+      - preprocessing
+      - training
+      - mlflow
+    outs:
+      - models/banknote_auth_model.joblib
+      - reports/mlflow_run_id.txt
+
+  model_evaluation:
+    cmd: python -m src.model_evaluation
+    deps:
+      - data/processed/test.csv
+      - models/banknote_auth_model.joblib
+      - reports/mlflow_run_id.txt
+      - src/model_evaluation.py
+      - src/utils.py
+    params:
+      - data
+      - evaluation
+      - mlflow
+    metrics:
+      - reports/metrics.json:
+          cache: false
+    plots:
+      - reports/confusion_matrix.csv:
+          template: confusion
+          x: actual
+          y: predicted
+          cache: false

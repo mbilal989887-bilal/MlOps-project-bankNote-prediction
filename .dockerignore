@@ -1,0 +1,15 @@
+.git/
+.dvc/
+.github/
+.venv/
+__pycache__/
+*.pyc
+data/
+logs/
+mlruns/
+mlflow.db
+reports/
+tests/
+src/
+.pytest_cache/
+.DS_Store
