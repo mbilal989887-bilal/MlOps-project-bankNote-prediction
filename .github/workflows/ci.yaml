@@ -61,6 +61,7 @@ jobs:
             -d '{"variance": 3.6, "skewness": 8.6, "curtosis": -2.8, "entropy": -0.4}'
           docker rm -f api
 
+      
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
