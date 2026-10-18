@@ -1,0 +1,76 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run DVC pipeline
+        run: dvc repro
+
+      - name: Run tests
+        run: pytest
+
+      - name: Save trained model for the Docker job
+        uses: actions/upload-artifact@v4
+        with:
+          name: model
+          path: models/banknote_auth_model.joblib
+
+  docker:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download trained model
+        uses: actions/download-artifact@v4
+        with:
+          name: model
+          path: models
+
+      - name: Build image
+        run: docker build -t banknote-mlops:test .
+
+      - name: Smoke test the container
+        run: |
+          docker run -d --name api -p 8000:8000 banknote-mlops:test
+          for i in $(seq 1 15); do
+            curl -sf http://localhost:8000/health && break || sleep 2
+          done
+          curl -sf -X POST http://localhost:8000/api/predict \
+            -H "Content-Type: application/json" \
+            -d '{"variance": 3.6, "skewness": 8.6, "curtosis": -2.8, "entropy": -0.4}'
+          docker rm -f api
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push image
+        run: |
+          IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/banknote-mlops
+          docker tag banknote-mlops:test $IMAGE:latest
+          docker tag banknote-mlops:test $IMAGE:${{ github.sha }}
+          docker push $IMAGE:latest
+          docker push $IMAGE:${{ github.sha }}

@@ -1,0 +1,22 @@
+.venv/
+data/
+.dvc/cache
+*.pkl
+*.h5
+mlruns/
+actions-runner/
+
+# Local GitHub Actions runner
+actions-runner/
+
+# Python virtual environment and cache
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local MLflow tracking data
+mlflow.db
+mlruns/
+
+# Generated logs
+logs/

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bank Note Authentication</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h2>Bank Note Authentication</h2>
+    <form action="/predict" method="post">
+        {% for name in features %}
+        <label>{{ name | capitalize }}</label>
+        <input type="number" step="any" name="{{ name }}"
+               min="{{ ranges[name][0] }}" max="{{ ranges[name][1] }}"
+               placeholder="Enter number: {{ ranges[name][0] }} to {{ ranges[name][1] }}"
+               value="{{ form_values[name] if form_values else '' }}" required>
+        {% endfor %}
+        <button type="submit">Predict</button>
+    </form>
+    {% if prediction_text %}
+        <h3>{{ prediction_text }}</h3>
+    {% endif %}
+</div>
+</body>
+</html>

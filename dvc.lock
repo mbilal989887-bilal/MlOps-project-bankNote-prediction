@@ -1,0 +1,179 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python -m src.data_ingestion
+    deps:
+    - path: data/source/BankNote_Authentication.csv
+      hash: md5
+      md5: 588378a19f074e7299d974545ded1999
+      size: 45070
+    - path: src/data_ingestion.py
+      hash: md5
+      md5: 7935cc3d28ba4f1b8bd12b40df268810
+      size: 2020
+    - path: src/utils.py
+      hash: md5
+      md5: 8b7139a8b71b1a6925d845e94fe1bb69
+      size: 1369
+    params:
+      params.yaml:
+        data:
+          source_file: data/source/BankNote_Authentication.csv
+          raw_file: data/raw/banknote.csv
+          target: class
+          features:
+          - variance
+          - skewness
+          - curtosis
+          - entropy
+    outs:
+    - path: data/raw/banknote.csv
+      hash: md5
+      md5: d646019d27c00893f7c640cfa03198cc
+      size: 45073
+    - path: reports/data_report.json
+      hash: md5
+      md5: 083e6a9645b7ea85a4c10efd6238ce28
+      size: 139
+  data_preprocessing:
+    cmd: python -m src.data_preprocessing
+    deps:
+    - path: data/raw/banknote.csv
+      hash: md5
+      md5: d646019d27c00893f7c640cfa03198cc
+      size: 45073
+    - path: src/data_preprocessing.py
+      hash: md5
+      md5: 626aabe0705a048e43cd4443187b4bd1
+      size: 1489
+    - path: src/utils.py
+      hash: md5
+      md5: 8b7139a8b71b1a6925d845e94fe1bb69
+      size: 1369
+    params:
+      params.yaml:
+        data:
+          source_file: data/source/BankNote_Authentication.csv
+          raw_file: data/raw/banknote.csv
+          target: class
+          features:
+          - variance
+          - skewness
+          - curtosis
+          - entropy
+        preprocessing:
+          drop_duplicates: true
+          test_size: 0.2
+          random_state: 42
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 8aa7779d5d15a3ca21bf37781dc0d1a9
+      size: 8878
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 423c7349fe8af25fe4887f6ca40d3333
+      size: 35470
+  model_training:
+    cmd: python -m src.model_training
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 423c7349fe8af25fe4887f6ca40d3333
+      size: 35470
+    - path: src/model_training.py
+      hash: md5
+      md5: 2cdb337d54e6338a56e28a5adf78c5e9
+      size: 3459
+    - path: src/utils.py
+      hash: md5
+      md5: 8b7139a8b71b1a6925d845e94fe1bb69
+      size: 1369
+    params:
+      params.yaml:
+        data:
+          source_file: data/source/BankNote_Authentication.csv
+          raw_file: data/raw/banknote.csv
+          target: class
+          features:
+          - variance
+          - skewness
+          - curtosis
+          - entropy
+        mlflow:
+          experiment_name: banknote-authentication
+          registered_model_name: banknote_auth_model
+        preprocessing:
+          drop_duplicates: true
+          test_size: 0.2
+          random_state: 42
+        training:
+          model_type: decision_tree
+          random_state: 42
+          cv_folds: 5
+          decision_tree:
+            max_depth: 5
+            min_samples_split: 10
+            min_samples_leaf: 5
+          random_forest:
+            n_estimators: 100
+            max_depth: 5
+            min_samples_split: 10
+            min_samples_leaf: 5
+    outs:
+    - path: models/banknote_auth_model.joblib
+      hash: md5
+      md5: caff4e67c574bc3862aa9de33aba3725
+      size: 4569
+    - path: reports/mlflow_run_id.txt
+      hash: md5
+      md5: 00a8cc9430d051381e0c1ed3a88b0d65
+      size: 32
+  model_evaluation:
+    cmd: python -m src.model_evaluation
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 8aa7779d5d15a3ca21bf37781dc0d1a9
+      size: 8878
+    - path: models/banknote_auth_model.joblib
+      hash: md5
+      md5: caff4e67c574bc3862aa9de33aba3725
+      size: 4569
+    - path: reports/mlflow_run_id.txt
+      hash: md5
+      md5: 00a8cc9430d051381e0c1ed3a88b0d65
+      size: 32
+    - path: src/model_evaluation.py
+      hash: md5
+      md5: 036df7575127d697dc64e9665aa3b4af
+      size: 2459
+    - path: src/utils.py
+      hash: md5
+      md5: 8b7139a8b71b1a6925d845e94fe1bb69
+      size: 1369
+    params:
+      params.yaml:
+        data:
+          source_file: data/source/BankNote_Authentication.csv
+          raw_file: data/raw/banknote.csv
+          target: class
+          features:
+          - variance
+          - skewness
+          - curtosis
+          - entropy
+        evaluation:
+          min_accuracy: 0.95
+        mlflow:
+          experiment_name: banknote-authentication
+          registered_model_name: banknote_auth_model
+    outs:
+    - path: reports/confusion_matrix.csv
+      hash: md5
+      md5: d62273f18ef69d212fd45c5327faef9e
+      size: 1097
+    - path: reports/metrics.json
+      hash: md5
+      md5: 99c6b8abef78e3bce3091a968f4a4368
+      size: 120
