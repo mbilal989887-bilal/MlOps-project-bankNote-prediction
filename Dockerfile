@@ -18,7 +18,6 @@ USER appuser
 
 EXPOSE 8000
 
-
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 

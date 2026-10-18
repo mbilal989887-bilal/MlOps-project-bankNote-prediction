@@ -1,22 +1,22 @@
+# Python
 .venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.DS_Store
+
+# Data and DVC cache
 data/
 .dvc/cache
 *.pkl
 *.h5
-mlruns/
-actions-runner/
 
 # Local GitHub Actions runner
 actions-runner/
 
-# Python virtual environment and cache
-.venv/
-__pycache__/
-*.py[cod]
-
-# Local MLflow tracking data
-mlflow.db
+# MLflow and logs
 mlruns/
-
-# Generated logs
+mlflow.db
 logs/
